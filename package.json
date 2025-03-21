@@ -29,7 +29,7 @@
   "scripts": {
     "vscode:package": "pnpx @vscode/vsce package",
     "compile:ts": "tsc -p ./",
-    "compile": "pnpm run compile && pnpm run package",
+    "compile": "pnpm run compile:ts && pnpm run vscode:package",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
