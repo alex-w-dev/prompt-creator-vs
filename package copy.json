@@ -1,7 +1,7 @@
 {
   "name": "prompt-extension",
   "displayName": "Prompt Creator",
-  "version": "1.0.3",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -16,8 +16,7 @@
   },
   "description": "Prompt creation tool with file context",
   "activationEvents": [
-    "onCommand:extension.createPrompt",
-    "onStartupFinished"
+    "onView:promptCreator.sidebarView"
   ],
   "contributes": {
     "commands": [
@@ -25,7 +24,26 @@
         "command": "extension.createPrompt",
         "title": "Create Prompt"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "prompt-creator-activitybar",
+          "title": "Prompt Creator",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "prompt-creator-activitybar": [
+        {
+          "type": "webview",
+          "id": "promptCreator.sidebarView",
+          "name": "Prompt Creator",
+          "contextualTitle": "Create Prompt"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:package": "npx @vscode/vsce package --out out",

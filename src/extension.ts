@@ -3,6 +3,18 @@ import { TextDecoder } from "util";
 import ignore from "ignore";
 
 export function activate(context: vscode.ExtensionContext) {
+  // Создаем элемент статусной панели
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100
+  );
+  statusBarItem.command = "extension.createPrompt";
+  statusBarItem.text = "$(comment)";
+  statusBarItem.tooltip = "Create Prompt";
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+
+  // Регистрация команды
   context.subscriptions.push(
     vscode.commands.registerCommand("extension.createPrompt", () => {
       const panel = vscode.window.createWebviewPanel(
@@ -78,9 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
                 try {
                   const fileUri = vscode.Uri.parse(uri);
                   const content = await vscode.workspace.fs.readFile(fileUri);
-                  const fileContent = vscode.workspace.asRelativePath(
-                    fileUri
-                  )
+                  const fileContent = vscode.workspace.asRelativePath(fileUri);
                   combinedText += `// START File: ${fileContent}\n`;
                   combinedText += new TextDecoder().decode(content) + "\n";
                   combinedText += `// END File: ${fileContent}\n\n`;
