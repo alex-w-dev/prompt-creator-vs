@@ -78,10 +78,12 @@ export function activate(context: vscode.ExtensionContext) {
                 try {
                   const fileUri = vscode.Uri.parse(uri);
                   const content = await vscode.workspace.fs.readFile(fileUri);
-                  combinedText += `// File: ${vscode.workspace.asRelativePath(
+                  const fileContent = vscode.workspace.asRelativePath(
                     fileUri
-                  )}\n`;
-                  combinedText += new TextDecoder().decode(content) + "\n\n";
+                  )
+                  combinedText += `// START File: ${fileContent}\n`;
+                  combinedText += new TextDecoder().decode(content) + "\n";
+                  combinedText += `// END File: ${fileContent}\n\n`;
                 } catch (error) {
                   vscode.window.showErrorMessage(`Error reading file: ${uri}`);
                 }
