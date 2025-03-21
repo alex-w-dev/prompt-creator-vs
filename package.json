@@ -1,7 +1,7 @@
 {
   "name": "prompt-extension",
   "displayName": "Prompt Creator",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "engines": {
     "vscode": "^1.75.0"
   },

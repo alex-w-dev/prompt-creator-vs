@@ -151,7 +151,8 @@ function getWebviewContent(cspSource: string) {
             height: 150px; 
             margin-bottom: 15px; 
             border: 1px solid var(--vscode-input-border);
-            overflow-y: auto;
+            overflow: auto;
+            resize: vertical;
             white-space: pre-wrap;
             line-height: 1.6;
             padding: 4px 8px;
@@ -159,6 +160,7 @@ function getWebviewContent(cspSource: string) {
             font-size: 13px;
             color: var(--vscode-input-foreground);
             background-color: var(--vscode-input-background);
+            outline: none;
         }
         .file-list { 
             max-height: 300px; 
