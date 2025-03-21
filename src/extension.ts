@@ -22,10 +22,11 @@ export function activate(context: vscode.ExtensionContext) {
         {
           enableScripts: true,
           retainContextWhenHidden: true,
+          localResourceRoots: [],
         }
       );
 
-      panel.webview.html = getWebviewContent();
+      panel.webview.html = getWebviewContent(panel.webview.cspSource);
 
       panel.webview.onDidReceiveMessage(
         async (message) => {
@@ -97,7 +98,7 @@ export function activate(context: vscode.ExtensionContext) {
                   const fileUri = vscode.Uri.parse(uri);
                   const content = await vscode.workspace.fs.readFile(fileUri);
                   const fileContent = vscode.workspace.asRelativePath(fileUri);
-                  combinedText += `// START File ${fileContent}:\n`;
+                  combinedText += `### File ${fileContent}:\n`;
                   combinedText += "```\n";
                   combinedText += new TextDecoder().decode(content) + "\n";
                   combinedText += "```\n\n";
@@ -131,28 +132,33 @@ export function activate(context: vscode.ExtensionContext) {
   );
 }
 
-function getWebviewContent() {
+function getWebviewContent(cspSource: string) {
   return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src ${cspSource} 'unsafe-inline' 'unsafe-eval';">
     <style>
         body { 
             padding: 10px; 
             font-family: var(--vscode-font-family); 
             color: var(--vscode-editor-foreground);
             background-color: var(--vscode-editor-background);
+            margin: 0;
+            height: calc(100vh - 20px);
         }
-        #mainPrompt { 
-            width: 100%; 
+        #editorContainer { 
             height: 150px; 
             margin-bottom: 15px; 
-            background-color: var(--vscode-input-background);
-            color: var(--vscode-input-foreground);
             border: 1px solid var(--vscode-input-border);
-            padding: 5px;
-            box-sizing: border-box;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            padding: 4px 8px;
+            font-family: var(--vscode-font-family);
+            font-size: 13px;
+            color: var(--vscode-input-foreground);
+            background-color: var(--vscode-input-background);
         }
         .file-list { 
             max-height: 300px; 
@@ -161,9 +167,14 @@ function getWebviewContent() {
         }
         .file-item { 
             margin: 5px 0; 
+            padding: 2px 5px;
         }
         .file-item label {
             color: var(--vscode-editor-foreground);
+            cursor: pointer;
+        }
+        .file-item:hover {
+            background-color: var(--vscode-list-hoverBackground);
         }
         button { 
             padding: 10px; 
@@ -172,6 +183,7 @@ function getWebviewContent() {
             border: none; 
             cursor: pointer; 
             width: 100%;
+            margin-top: 10px;
         }
         button:hover {
             background-color: var(--vscode-button-hoverBackground);
@@ -179,8 +191,7 @@ function getWebviewContent() {
     </style>
 </head>
 <body>
-    <textarea id="mainPrompt" placeholder="1 Enter your main prompt..."></textarea>
-    <div>ooooo!</div>
+    <div id="editorContainer" contenteditable="true"></div>
     <div id="fileList" class="file-list"></div>
     <button onclick="createPrompt()">Create Prompt</button>
 
@@ -188,30 +199,43 @@ function getWebviewContent() {
         const vscode = acquireVsCodeApi();
         vscode.postMessage({ command: 'getFiles' });
 
+        let editor = null;
+
+        window.addEventListener('load', () => {
+            editor = document.getElementById('editorContainer');
+            document.getElementById('hiddenTextarea').value = editor.innerText;
+            
+            editor.addEventListener('input', () => {
+                document.getElementById('hiddenTextarea').value = editor.innerText;
+                saveState();
+            });
+        });
+
         window.addEventListener('message', e => {
             if (e.data.command === 'receiveFiles') {
-                document.getElementById('fileList').innerHTML = e.data.files.map(file => \`
+                const filesHtml = e.data.files.map(file => \`
                     <div class="file-item">
-                        <label><input type="checkbox" value="\${file.uri}"> \${file.path}</label>
+                        <label>
+                            <input type="checkbox" value="\${file.uri}"> 
+                            \${file.path}
+                        </label>
                     </div>
                 \`).join('');
-
-                document.getElementById('mainPrompt').value = e.data.savedMainPrompt || '';
                 
+                document.getElementById('fileList').innerHTML = filesHtml;
+                editor.innerText = e.data.savedMainPrompt || '';
+                document.getElementById('hiddenTextarea').value = e.data.savedMainPrompt || '';
+
                 const savedSelectedFiles = e.data.savedSelectedFiles || [];
                 document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                     checkbox.checked = savedSelectedFiles.includes(checkbox.value);
-                });
-
-                document.getElementById('mainPrompt').addEventListener('input', saveState);
-                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                     checkbox.addEventListener('change', saveState);
                 });
             }
         });
 
         function saveState() {
-            const mainPrompt = document.getElementById('mainPrompt').value;
+            const mainPrompt = document.getElementById('hiddenTextarea').value;
             const selectedFiles = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
                 .map(checkbox => checkbox.value);
             
@@ -223,7 +247,7 @@ function getWebviewContent() {
         }
 
         function createPrompt() {
-            const mainPrompt = document.getElementById('mainPrompt').value;
+            const mainPrompt = document.getElementById('hiddenTextarea').value;
             const files = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
                 .map(checkbox => checkbox.value);
             
@@ -232,9 +256,14 @@ function getWebviewContent() {
                 return;
             }
             
-            vscode.postMessage({ command: 'createPrompt', mainPrompt, selectedFiles: files });
+            vscode.postMessage({ 
+                command: 'createPrompt', 
+                mainPrompt: mainPrompt, 
+                selectedFiles: files 
+            });
         }
     </script>
+    <textarea id="hiddenTextarea" style="display: none;"></textarea>
 </body>
 </html>`;
 }
