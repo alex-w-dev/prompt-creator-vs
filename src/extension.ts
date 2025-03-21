@@ -138,11 +138,44 @@ function getWebviewContent() {
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
     <style>
-        body { padding: 10px; font-family: Arial; }
-        #mainPrompt { width: 100%; height: 150px; margin-bottom: 15px; }
-        .file-list { max-height: 300px; overflow-y: auto; margin: 10px 0; }
-        .file-item { margin: 5px 0; }
-        button { padding: 10px; background: #007acc; color: white; border: none; cursor: pointer; }
+        body { 
+            padding: 10px; 
+            font-family: var(--vscode-font-family); 
+            color: var(--vscode-editor-foreground);
+            background-color: var(--vscode-editor-background);
+        }
+        #mainPrompt { 
+            width: 100%; 
+            height: 150px; 
+            margin-bottom: 15px; 
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .file-list { 
+            max-height: 300px; 
+            overflow-y: auto; 
+            margin: 10px 0; 
+        }
+        .file-item { 
+            margin: 5px 0; 
+        }
+        .file-item label {
+            color: var(--vscode-editor-foreground);
+        }
+        button { 
+            padding: 10px; 
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none; 
+            cursor: pointer; 
+            width: 100%;
+        }
+        button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
     </style>
 </head>
 <body>
