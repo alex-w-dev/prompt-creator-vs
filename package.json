@@ -5,7 +5,7 @@
   "engines": {
     "vscode": "^1.75.0"
   },
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "categories": [
     "Other"
   ],
@@ -27,7 +27,7 @@
     ]
   },
   "scripts": {
-    "vscode:package": "pnpx @vscode/vsce package",
+    "vscode:package": "pnpx @vscode/vsce package --no-dependencies --out out",
     "compile:ts": "tsc -p ./",
     "compile": "pnpm run compile:ts && pnpm run vscode:package",
     "watch": "tsc -watch -p ./"
@@ -39,5 +39,8 @@
     "generator-code": "^1.11.7",
     "typescript": "^4.9.4",
     "yo": "^5.1.0"
+  },
+  "dependencies": {
+    "ignore": "5.2.4"
   }
 }

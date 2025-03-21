@@ -1,39 +1,6 @@
 import * as vscode from "vscode";
 import { TextDecoder } from "util";
-
-function parseGitignore(content: string): string[] {
-  return content
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith("#"))
-    .map((line) => {
-      if (line.startsWith("/")) {
-        line = line.substring(1);
-      }
-      if (line.endsWith("/")) {
-        return `**/${line}**`;
-      }
-      return line.includes("*") ? `**/${line}` : `**/${line}/**`;
-    });
-}
-
-async function getGitignorePatterns(): Promise<string> {
-  if (!vscode.workspace.workspaceFolders) return "";
-
-  try {
-    const uri = vscode.Uri.joinPath(
-      vscode.workspace.workspaceFolders[0].uri,
-      ".gitignore"
-    );
-    const content = await vscode.workspace.fs.readFile(uri);
-    const patterns = parseGitignore(new TextDecoder().decode(content));
-    return patterns.length > 0 ? `{${patterns.join(",")}}` : "";
-  } catch {
-    return "";
-  }
-}
-
-
+import ignore from "ignore";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -54,17 +21,56 @@ export function activate(context: vscode.ExtensionContext) {
         async (message) => {
           switch (message.command) {
             case "getFiles":
-              const files = await vscode.workspace.findFiles(
-                "**/*",
-                await getGitignorePatterns()
-              );
-              panel.webview.postMessage({
-                command: "receiveFiles",
-                files: files.map((file) => ({
-                  uri: file.toString(),
-                  path: vscode.workspace.asRelativePath(file),
-                })),
-              });
+              try {
+                const gitignoreUris = await vscode.workspace.findFiles(
+                  "**/.gitignore",
+                  "",
+                  1024
+                );
+                const ig = ignore();
+                let hasGitignore = false;
+
+                if (gitignoreUris.length > 0) {
+                  hasGitignore = true;
+                  for (const uri of gitignoreUris) {
+                    try {
+                      const content = await vscode.workspace.fs.readFile(uri);
+                      const contentStr = new TextDecoder().decode(content);
+                      ig.add(contentStr);
+                    } catch (error) {
+                      console.error(
+                        "Error reading .gitignore file:",
+                        uri.path,
+                        error
+                      );
+                    }
+                  }
+                }
+
+                let files;
+                if (hasGitignore) {
+                  const allFiles = await vscode.workspace.findFiles("**/*", "");
+                  files = allFiles.filter((file) => {
+                    const relativePath = vscode.workspace.asRelativePath(file);
+                    return !ig.ignores(relativePath);
+                  });
+                } else {
+                  files = await vscode.workspace.findFiles(
+                    "**/*",
+                    "**/node_modules/**,**/.git/**"
+                  );
+                }
+
+                panel.webview.postMessage({
+                  command: "receiveFiles",
+                  files: files.map((file) => ({
+                    uri: file.toString(),
+                    path: vscode.workspace.asRelativePath(file),
+                  })),
+                });
+              } catch (error) {
+                vscode.window.showErrorMessage("Error fetching files.");
+              }
               break;
             case "createPrompt":
               let combinedText = message.mainPrompt + "\n\n";
@@ -113,6 +119,7 @@ function getWebviewContent() {
 </head>
 <body>
     <textarea id="mainPrompt" placeholder="Enter your main prompt..."></textarea>
+    <div>ooooo!</div>
     <div id="fileList" class="file-list"></div>
     <button onclick="createPrompt()">Create Prompt</button>
 
