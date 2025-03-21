@@ -1,0 +1,42 @@
+{
+  "name": "prompt-extension",
+  "displayName": "Prompt Creator",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./out/extension.js",
+  "categories": [
+    "Other"
+  ],
+  "publisher": "alex-w-dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alex-w-dev/prompt-creator-vs"
+  },
+  "description": "Prompt creation tool with file context",
+  "activationEvents": [
+    "onCommand:extension.createPrompt"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.createPrompt",
+        "title": "Create Prompt"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@types/vscode": "^1.75.0",
+    "@vscode/vsce": "^3.3.0",
+    "generator-code": "^1.11.7",
+    "typescript": "^4.9.4",
+    "yo": "^5.1.0"
+  }
+}
