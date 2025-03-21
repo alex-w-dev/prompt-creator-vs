@@ -118,7 +118,7 @@ function getWebviewContent() {
     </style>
 </head>
 <body>
-    <textarea id="mainPrompt" placeholder="Enter your main prompt..."></textarea>
+    <textarea id="mainPrompt" placeholder="1 Enter your main prompt..."></textarea>
     <div>ooooo!</div>
     <div id="fileList" class="file-list"></div>
     <button onclick="createPrompt()">Create Prompt</button>

@@ -27,17 +27,18 @@
     ]
   },
   "scripts": {
-    "vscode:package": "pnpx @vscode/vsce package --no-dependencies --out out",
+    "vscode:package": "npx @vscode/vsce package --out out",
     "compile:ts": "tsc -p ./",
-    "compile": "pnpm run compile:ts && pnpm run vscode:package",
+    "compile": "npm run compile:ts && npm run vscode:package",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@types/json-schema": "^7.0.15",
     "@types/node": "^18.11.18",
     "@types/vscode": "^1.75.0",
     "@vscode/vsce": "^3.3.0",
     "generator-code": "^1.11.7",
-    "typescript": "^4.9.4",
+    "typescript": "^4.9.5",
     "yo": "^5.1.0"
   },
   "dependencies": {
