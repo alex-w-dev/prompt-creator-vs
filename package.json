@@ -27,8 +27,9 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "vscode:package": "pnpx @vscode/vsce package",
+    "compile:ts": "tsc -p ./",
+    "compile": "pnpm run compile && pnpm run package",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {

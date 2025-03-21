@@ -1,6 +1,40 @@
 import * as vscode from "vscode";
 import { TextDecoder } from "util";
 
+function parseGitignore(content: string): string[] {
+  return content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .map((line) => {
+      if (line.startsWith("/")) {
+        line = line.substring(1);
+      }
+      if (line.endsWith("/")) {
+        return `**/${line}**`;
+      }
+      return line.includes("*") ? `**/${line}` : `**/${line}/**`;
+    });
+}
+
+async function getGitignorePatterns(): Promise<string> {
+  if (!vscode.workspace.workspaceFolders) return "";
+
+  try {
+    const uri = vscode.Uri.joinPath(
+      vscode.workspace.workspaceFolders[0].uri,
+      ".gitignore"
+    );
+    const content = await vscode.workspace.fs.readFile(uri);
+    const patterns = parseGitignore(new TextDecoder().decode(content));
+    return patterns.length > 0 ? `{${patterns.join(",")}}` : "";
+  } catch {
+    return "";
+  }
+}
+
+
+
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("extension.createPrompt", () => {
@@ -22,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
             case "getFiles":
               const files = await vscode.workspace.findFiles(
                 "**/*",
-                "**/node_modules/**,**/.git/**"
+                await getGitignorePatterns()
               );
               panel.webview.postMessage({
                 command: "receiveFiles",
