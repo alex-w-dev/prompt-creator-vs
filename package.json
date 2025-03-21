@@ -1,7 +1,7 @@
 {
   "name": "prompt-extension",
   "displayName": "Prompt Creator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -30,7 +30,7 @@
   "scripts": {
     "vscode:package": "npx @vscode/vsce package --out out",
     "compile:ts": "tsc -p ./",
-    "compile": "npm run compile:ts && npm run vscode:package",
+    "compile": "npm version patch --no-git-tag-version && npm run compile:ts && npm run vscode:package",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {

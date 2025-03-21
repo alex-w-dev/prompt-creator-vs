@@ -3,7 +3,6 @@ import { TextDecoder } from "util";
 import ignore from "ignore";
 
 export function activate(context: vscode.ExtensionContext) {
-  // Создаем элемент статусной панели
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     100
@@ -14,7 +13,6 @@ export function activate(context: vscode.ExtensionContext) {
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // Регистрация команды
   context.subscriptions.push(
     vscode.commands.registerCommand("extension.createPrompt", () => {
       const panel = vscode.window.createWebviewPanel(
@@ -73,17 +71,25 @@ export function activate(context: vscode.ExtensionContext) {
                   );
                 }
 
+                const savedMainPrompt =
+                  context.globalState.get("mainPrompt") || "";
+                const savedSelectedFiles =
+                  context.globalState.get("selectedFiles") || [];
+
                 panel.webview.postMessage({
                   command: "receiveFiles",
                   files: files.map((file) => ({
                     uri: file.toString(),
                     path: vscode.workspace.asRelativePath(file),
                   })),
+                  savedMainPrompt,
+                  savedSelectedFiles,
                 });
               } catch (error) {
                 vscode.window.showErrorMessage("Error fetching files.");
               }
               break;
+
             case "createPrompt":
               let combinedText = message.mainPrompt + "\n\n";
               for (const uri of message.selectedFiles) {
@@ -91,9 +97,10 @@ export function activate(context: vscode.ExtensionContext) {
                   const fileUri = vscode.Uri.parse(uri);
                   const content = await vscode.workspace.fs.readFile(fileUri);
                   const fileContent = vscode.workspace.asRelativePath(fileUri);
-                  combinedText += `// START File: ${fileContent}\n`;
+                  combinedText += `// START File ${fileContent}:\n`;
+                  combinedText += "```\n";
                   combinedText += new TextDecoder().decode(content) + "\n";
-                  combinedText += `// END File: ${fileContent}\n\n`;
+                  combinedText += "```\n\n";
                 } catch (error) {
                   vscode.window.showErrorMessage(`Error reading file: ${uri}`);
                 }
@@ -103,6 +110,15 @@ export function activate(context: vscode.ExtensionContext) {
                 "Prompt copied to clipboard!"
               );
               break;
+
+            case "saveState":
+              context.globalState.update("mainPrompt", message.mainPrompt);
+              context.globalState.update(
+                "selectedFiles",
+                message.selectedFiles
+              );
+              break;
+
             case "alert":
               vscode.window.showWarningMessage(message.text);
               break;
@@ -146,8 +162,32 @@ function getWebviewContent() {
                         <label><input type="checkbox" value="\${file.uri}"> \${file.path}</label>
                     </div>
                 \`).join('');
+
+                document.getElementById('mainPrompt').value = e.data.savedMainPrompt || '';
+                
+                const savedSelectedFiles = e.data.savedSelectedFiles || [];
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = savedSelectedFiles.includes(checkbox.value);
+                });
+
+                document.getElementById('mainPrompt').addEventListener('input', saveState);
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', saveState);
+                });
             }
         });
+
+        function saveState() {
+            const mainPrompt = document.getElementById('mainPrompt').value;
+            const selectedFiles = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            vscode.postMessage({
+                command: 'saveState',
+                mainPrompt: mainPrompt,
+                selectedFiles: selectedFiles
+            });
+        }
 
         function createPrompt() {
             const mainPrompt = document.getElementById('mainPrompt').value;
