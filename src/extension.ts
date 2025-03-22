@@ -9,6 +9,13 @@ interface TreeNode {
   uri?: string;
 }
 
+interface TabState {
+  id: string;
+  name: string;
+  mainPrompt: string;
+  selectedFiles: string[];
+}
+
 export function activate(context: vscode.ExtensionContext) {
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
@@ -96,10 +103,10 @@ export function activate(context: vscode.ExtensionContext) {
                   );
                 }
 
-                const savedMainPrompt =
-                  context.workspaceState.get("mainPrompt") || "";
-                const savedSelectedFiles =
-                  context.workspaceState.get("selectedFiles") || [];
+                const savedTabs =
+                  context.workspaceState.get<TabState[]>("tabs") || [];
+                const savedActiveTabId =
+                  context.workspaceState.get<string>("activeTabId");
 
                 function buildFileTree(files: vscode.Uri[]): TreeNode[] {
                   const root: TreeNode = {
@@ -157,8 +164,8 @@ export function activate(context: vscode.ExtensionContext) {
                 panel.webview.postMessage({
                   command: "receiveFiles",
                   filesTree: filesTree,
-                  savedMainPrompt,
-                  savedSelectedFiles,
+                  savedTabs,
+                  savedActiveTabId,
                 });
               } catch (error) {
                 vscode.window.showErrorMessage("Error fetching files.");
@@ -187,11 +194,8 @@ export function activate(context: vscode.ExtensionContext) {
               break;
 
             case "saveState":
-              context.workspaceState.update("mainPrompt", message.mainPrompt);
-              context.workspaceState.update(
-                "selectedFiles",
-                message.selectedFiles
-              );
+              context.workspaceState.update("tabs", message.tabs);
+              context.workspaceState.update("activeTabId", message.activeTabId);
               break;
 
             case "alert":

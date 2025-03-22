@@ -12,6 +12,32 @@
             margin: 0;
             height: calc(100vh - 20px);
         }
+        #tabsHeader {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .tab {
+            padding: 5px 10px;
+            cursor: pointer;
+            border: 1px solid var(--vscode-panel-border);
+            background-color: var(--vscode-panel-background);
+            border-radius: 3px 3px 0 0;
+            user-select: none;
+        }
+        .tab.active {
+            background-color: var(--vscode-panel-activeBackground);
+            border-bottom-color: var(--vscode-panel-activeBackground);
+        }
+        #addTab {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+        }
         #editorContainer { 
             height: 150px; 
             margin-bottom: 15px; 
@@ -81,15 +107,99 @@
     </style>
 </head>
 <body>
+    <div id="tabsHeader"></div>
     <div id="editorContainer" contenteditable="true"></div>
     <div id="fileList" class="file-list"></div>
     <button onclick="createPrompt()">Create Prompt</button>
 
     <script>
         const vscode = acquireVsCodeApi();
-        vscode.postMessage({ command: 'getFiles' });
-
         let editor = null;
+        let tabs = [];
+        let activeTabId = null;
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function createNewTab() {
+            return {
+                id: generateId(),
+                name: `Tab ${tabs.length + 1}`,
+                mainPrompt: '',
+                selectedFiles: []
+            };
+        }
+
+        function renderTabs() {
+            const tabsHeader = document.getElementById('tabsHeader');
+            tabsHeader.innerHTML = '';
+            
+            tabs.forEach(tab => {
+                const tabElement = document.createElement('div');
+                tabElement.className = `tab${tab.id === activeTabId ? ' active' : ''}`;
+                tabElement.textContent = tab.name;
+                tabElement.dataset.tabId = tab.id;
+                tabElement.addEventListener('click', () => switchTab(tab.id));
+                tabsHeader.appendChild(tabElement);
+            });
+
+            const addButton = document.createElement('button');
+            addButton.id = 'addTab';
+            addButton.textContent = '+';
+            addButton.addEventListener('click', addNewTab);
+            tabsHeader.appendChild(addButton);
+        }
+
+        function addNewTab() {
+            const newTab = createNewTab();
+            tabs.push(newTab);
+            activeTabId = newTab.id;
+            renderTabs();
+            loadActiveTab();
+            saveState();
+        }
+
+        function switchTab(tabId) {
+            saveCurrentTabState();
+            activeTabId = tabId;
+            renderTabs();
+            loadActiveTab();
+        }
+
+        function saveCurrentTabState() {
+            const activeTab = tabs.find(t => t.id === activeTabId);
+            if (activeTab) {
+                activeTab.mainPrompt = document.getElementById('hiddenTextarea').value;
+                activeTab.selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                    .map(checkbox => checkbox.value);
+            }
+        }
+
+        function loadActiveTab() {
+            const activeTab = tabs.find(t => t.id === activeTabId);
+            if (!activeTab) return;
+
+            editor.innerText = activeTab.mainPrompt;
+            document.getElementById('hiddenTextarea').value = activeTab.mainPrompt;
+
+            document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+                checkbox.checked = activeTab.selectedFiles.includes(checkbox.value);
+                updateFolderCheckboxes(checkbox);
+            });
+        }
+
+        function updateFolderCheckboxes(fileCheckbox) {
+            let currentFolder = fileCheckbox.closest('.folder');
+            while (currentFolder) {
+                const folderCheckbox = currentFolder.querySelector('.folder-checkbox');
+                const fileCheckboxesInFolder = currentFolder.querySelectorAll('.file-checkbox');
+                const checkedCount = Array.from(fileCheckboxesInFolder).filter(fc => fc.checked).length;
+                folderCheckbox.indeterminate = checkedCount > 0 && checkedCount < fileCheckboxesInFolder.length;
+                folderCheckbox.checked = checkedCount === fileCheckboxesInFolder.length && checkedCount > 0;
+                currentFolder = currentFolder.parentElement.closest('.folder');
+            }
+        }
 
         window.addEventListener('load', () => {
             editor = document.getElementById('editorContainer');
@@ -99,14 +209,22 @@
                 document.getElementById('hiddenTextarea').value = editor.innerText;
                 saveState();
             });
+
+            vscode.postMessage({ command: 'getFiles' });
         });
 
         window.addEventListener('message', e => {
             if (e.data.command === 'receiveFiles') {
-                const savedMainPrompt = e.data.savedMainPrompt || '';
-                const savedSelectedFiles = e.data.savedSelectedFiles || [];
-                editor.innerText = savedMainPrompt;
-                document.getElementById('hiddenTextarea').value = savedMainPrompt;
+                tabs = e.data.savedTabs || [];
+                activeTabId = e.data.savedActiveTabId || (tabs.length > 0 ? tabs[0].id : null);
+
+                if (tabs.length === 0) {
+                    const newTab = createNewTab();
+                    tabs.push(newTab);
+                    activeTabId = newTab.id;
+                }
+
+                renderTabs();
 
                 function generateNodeHtml(node, level = 0) {
                     if (node.isFile) {
@@ -159,45 +277,33 @@
                     });
                 });
 
+                loadActiveTab();
+
                 document.querySelectorAll('.file-checkbox').forEach(checkbox => {
-                    checkbox.checked = savedSelectedFiles.includes(checkbox.value);
                     checkbox.addEventListener('change', function() {
                         saveState();
                         updateFolderCheckboxes(this);
                     });
                     updateFolderCheckboxes(checkbox);
                 });
-
-                function updateFolderCheckboxes(fileCheckbox) {
-                    let currentFolder = fileCheckbox.closest('.folder');
-                    while (currentFolder) {
-                        const folderCheckbox = currentFolder.querySelector('.folder-checkbox');
-                        const fileCheckboxesInFolder = currentFolder.querySelectorAll('.file-checkbox');
-                        const checkedCount = Array.from(fileCheckboxesInFolder).filter(fc => fc.checked).length;
-                        folderCheckbox.indeterminate = checkedCount > 0 && checkedCount < fileCheckboxesInFolder.length;
-                        folderCheckbox.checked = checkedCount === fileCheckboxesInFolder.length && checkedCount > 0;
-                        currentFolder = currentFolder.parentElement.closest('.folder');
-                    }
-                }
             }
         });
 
         function saveState() {
-            const mainPrompt = document.getElementById('hiddenTextarea').value;
-            const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
-                .map(checkbox => checkbox.value);
-            
+            saveCurrentTabState();
             vscode.postMessage({
                 command: 'saveState',
-                mainPrompt: mainPrompt,
-                selectedFiles: selectedFiles
+                tabs: tabs,
+                activeTabId: activeTabId
             });
         }
 
         function createPrompt() {
-            const mainPrompt = document.getElementById('hiddenTextarea').value;
-            const files = Array.from(document.querySelectorAll('.file-checkbox:checked'))
-                .map(checkbox => checkbox.value);
+            const activeTab = tabs.find(t => t.id === activeTabId);
+            if (!activeTab) return;
+
+            const mainPrompt = activeTab.mainPrompt;
+            const files = activeTab.selectedFiles;
             
             if (!mainPrompt && files.length === 0) {
                 vscode.postMessage({ command: 'alert', text: 'Please enter a prompt or select files!' });
