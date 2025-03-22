@@ -97,9 +97,9 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 const savedMainPrompt =
-                  context.globalState.get("mainPrompt") || "";
+                  context.workspaceState.get("mainPrompt") || "";
                 const savedSelectedFiles =
-                  context.globalState.get("selectedFiles") || [];
+                  context.workspaceState.get("selectedFiles") || [];
 
                 function buildFileTree(files: vscode.Uri[]): TreeNode[] {
                   const root: TreeNode = {
@@ -187,8 +187,8 @@ export function activate(context: vscode.ExtensionContext) {
               break;
 
             case "saveState":
-              context.globalState.update("mainPrompt", message.mainPrompt);
-              context.globalState.update(
+              context.workspaceState.update("mainPrompt", message.mainPrompt);
+              context.workspaceState.update(
                 "selectedFiles",
                 message.selectedFiles
               );
