@@ -133,6 +133,22 @@ export function activate(context: vscode.ExtensionContext) {
                     currentNode.isFile = true;
                     currentNode.uri = file.toString();
                   }
+
+                  const sortChildren = (node: TreeNode) => {
+                    node.children.sort((a, b) => {
+                      if (!a.isFile && b.isFile) return -1;
+                      if (a.isFile && !b.isFile) return 1;
+                      return a.name.localeCompare(b.name);
+                    });
+                    node.children.forEach((child) => {
+                      if (!child.isFile) {
+                        sortChildren(child);
+                      }
+                    });
+                  };
+
+                  sortChildren(root);
+
                   return root.children;
                 }
 
