@@ -2,6 +2,13 @@ import * as vscode from "vscode";
 import { TextDecoder } from "util";
 import ignore from "ignore";
 
+interface TreeNode {
+  name: string;
+  children: TreeNode[];
+  isFile: boolean;
+  uri?: string;
+}
+
 export function activate(context: vscode.ExtensionContext) {
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
@@ -94,12 +101,46 @@ export function activate(context: vscode.ExtensionContext) {
                 const savedSelectedFiles =
                   context.globalState.get("selectedFiles") || [];
 
+                function buildFileTree(files: vscode.Uri[]): TreeNode[] {
+                  const root: TreeNode = {
+                    name: "",
+                    children: [],
+                    isFile: false,
+                  };
+                  for (const file of files) {
+                    const relativePath = vscode.workspace.asRelativePath(file);
+                    const parts = relativePath.split("/");
+                    let currentNode = root;
+                    for (let i = 0; i < parts.length; i++) {
+                      const part = parts[i];
+                      let child = currentNode.children.find(
+                        (c) => c.name === part
+                      );
+                      if (!child) {
+                        child = {
+                          name: part,
+                          children: [],
+                          isFile: i === parts.length - 1,
+                          uri:
+                            i === parts.length - 1
+                              ? file.toString()
+                              : undefined,
+                        };
+                        currentNode.children.push(child);
+                      }
+                      currentNode = child;
+                    }
+                    currentNode.isFile = true;
+                    currentNode.uri = file.toString();
+                  }
+                  return root.children;
+                }
+
+                const filesTree = buildFileTree(files);
+
                 panel.webview.postMessage({
                   command: "receiveFiles",
-                  files: files.map((file) => ({
-                    uri: file.toString(),
-                    path: vscode.workspace.asRelativePath(file),
-                  })),
+                  filesTree: filesTree,
                   savedMainPrompt,
                   savedSelectedFiles,
                 });

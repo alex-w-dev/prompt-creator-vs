@@ -32,16 +32,36 @@
             overflow-y: auto; 
             margin: 10px 0; 
         }
-        .file-item { 
-            margin: 5px 0; 
+        .folder {
+            margin: 5px 0;
+        }
+        .folder-header {
+            cursor: pointer;
+            padding: 2px 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            user-select: none;
+        }
+        .folder-header:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        .toggle {
+            width: 10px;
+            display: inline-block;
+        }
+        .folder-children {
+            margin-left: 20px;
+        }
+        .file-item {
+            margin: 2px 0;
             padding: 2px 5px;
         }
         .file-item label {
-            color: var(--vscode-editor-foreground);
+            display: flex;
+            align-items: center;
+            gap: 5px;
             cursor: pointer;
-        }
-        .file-item:hover {
-            background-color: var(--vscode-list-hoverBackground);
         }
         button { 
             padding: 10px; 
@@ -54,6 +74,9 @@
         }
         button:hover {
             background-color: var(--vscode-button-hoverBackground);
+        }
+        input[type="checkbox"] {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -80,30 +103,88 @@
 
         window.addEventListener('message', e => {
             if (e.data.command === 'receiveFiles') {
-                const filesHtml = e.data.files.map(file => `
-                    <div class="file-item">
-                        <label>
-                            <input type="checkbox" value="${file.uri}"> 
-                            ${file.path}
-                        </label>
-                    </div>
-                `).join('');
-                
-                document.getElementById('fileList').innerHTML = filesHtml;
-                editor.innerText = e.data.savedMainPrompt || '';
-                document.getElementById('hiddenTextarea').value = e.data.savedMainPrompt || '';
-
+                const savedMainPrompt = e.data.savedMainPrompt || '';
                 const savedSelectedFiles = e.data.savedSelectedFiles || [];
-                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.checked = savedSelectedFiles.includes(checkbox.value);
-                    checkbox.addEventListener('change', saveState);
+                editor.innerText = savedMainPrompt;
+                document.getElementById('hiddenTextarea').value = savedMainPrompt;
+
+                function generateNodeHtml(node, level = 0) {
+                    if (node.isFile) {
+                        return `
+                            <div class="file-item" style="padding-left: ${level * 20}px;">
+                                <label>
+                                    <input type="checkbox" class="file-checkbox" value="${node.uri}">
+                                    ${node.name}
+                                </label>
+                            </div>
+                        `;
+                    } else {
+                        const childrenHtml = node.children.map(child => generateNodeHtml(child, level + 1)).join('');
+                        return `
+                            <div class="folder">
+                                <div class="folder-header" style="padding-left: ${level * 20}px;">
+                                    <span class="toggle">▶</span>
+                                    <input type="checkbox" class="folder-checkbox">
+                                    <span class="folder-name">${node.name}</span>
+                                </div>
+                                <div class="folder-children" style="display: none;">
+                                    ${childrenHtml}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                const filesHtml = e.data.filesTree.map(node => generateNodeHtml(node, 0)).join('');
+                document.getElementById('fileList').innerHTML = filesHtml;
+
+                document.querySelectorAll('.toggle').forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const folderChildren = toggle.closest('.folder-header').nextElementSibling;
+                        const isCollapsed = folderChildren.style.display === 'none';
+                        folderChildren.style.display = isCollapsed ? 'block' : 'none';
+                        toggle.textContent = isCollapsed ? '▼' : '▶';
+                    });
                 });
+
+                document.querySelectorAll('.folder-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        const folder = checkbox.closest('.folder');
+                        const fileCheckboxes = folder.querySelectorAll('.file-checkbox');
+                        const isChecked = checkbox.checked;
+                        fileCheckboxes.forEach(fileCheckbox => {
+                            fileCheckbox.checked = isChecked;
+                            fileCheckbox.dispatchEvent(new Event('change'));
+                        });
+                    });
+                });
+
+                document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+                    checkbox.checked = savedSelectedFiles.includes(checkbox.value);
+                    checkbox.addEventListener('change', function() {
+                        saveState();
+                        updateFolderCheckboxes(this);
+                    });
+                    updateFolderCheckboxes(checkbox);
+                });
+
+                function updateFolderCheckboxes(fileCheckbox) {
+                    let currentFolder = fileCheckbox.closest('.folder');
+                    while (currentFolder) {
+                        const folderCheckbox = currentFolder.querySelector('.folder-checkbox');
+                        const fileCheckboxesInFolder = currentFolder.querySelectorAll('.file-checkbox');
+                        const checkedCount = Array.from(fileCheckboxesInFolder).filter(fc => fc.checked).length;
+                        folderCheckbox.indeterminate = checkedCount > 0 && checkedCount < fileCheckboxesInFolder.length;
+                        folderCheckbox.checked = checkedCount === fileCheckboxesInFolder.length && checkedCount > 0;
+                        currentFolder = currentFolder.parentElement.closest('.folder');
+                    }
+                }
             }
         });
 
         function saveState() {
             const mainPrompt = document.getElementById('hiddenTextarea').value;
-            const selectedFiles = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+            const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
                 .map(checkbox => checkbox.value);
             
             vscode.postMessage({
@@ -115,7 +196,7 @@
 
         function createPrompt() {
             const mainPrompt = document.getElementById('hiddenTextarea').value;
-            const files = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+            const files = Array.from(document.querySelectorAll('.file-checkbox:checked'))
                 .map(checkbox => checkbox.value);
             
             if (!mainPrompt && files.length === 0) {
