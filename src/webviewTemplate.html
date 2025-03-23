@@ -17,15 +17,21 @@
             gap: 5px;
             margin-bottom: 10px;
             align-items: center;
+            overflow-x: auto;
         }
         .tab {
-            padding: 5px 20px 5px 10px;
+            padding: 5px 10px 5px 10px;
             cursor: pointer;
             border: 1px solid var(--vscode-panel-border);
             background-color: var(--vscode-panel-background);
             border-radius: 3px 3px 0 0;
             user-select: none;
             position: relative;
+            white-space: nowrap;
+            min-width: 80px;
+            flex-shrink: 0;
+            height: 32px;
+            box-sizing: border-box;
         }
         .tab.active {
             background-color: var(--vscode-panel-activeBackground);
@@ -33,7 +39,7 @@
         }
         .close-btn {
             position: absolute;
-            right: 5px;
+            right: 0px;
             top: 50%;
             transform: translateY(-50%);
             width: 14px;
@@ -48,12 +54,19 @@
             color: var(--vscode-notifications-foreground);
         }
         #addTab {
-            padding: 5px 10px;
+            padding: 0;
+            margin-top: 0px;
             cursor: pointer;
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 3px;
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         #editorContainer { 
             height: 150px; 
@@ -159,8 +172,9 @@
                 
                 const tabContent = document.createElement('div');
                 tabContent.style.position = 'relative';
+                tabContent.style.paddingRight = '20px';
                 tabContent.innerHTML = `
-                    ${tab.name}
+                    <span style="display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">${tab.name}</span>
                     ${tabs.length > 1 ? '<div class="close-btn" onclick="closeTab(\'' + tab.id + '\', event)">×</div>' : ''}
                 `;
                 
