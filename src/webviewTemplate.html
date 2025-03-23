@@ -19,16 +19,33 @@
             align-items: center;
         }
         .tab {
-            padding: 5px 10px;
+            padding: 5px 20px 5px 10px;
             cursor: pointer;
             border: 1px solid var(--vscode-panel-border);
             background-color: var(--vscode-panel-background);
             border-radius: 3px 3px 0 0;
             user-select: none;
+            position: relative;
         }
         .tab.active {
             background-color: var(--vscode-panel-activeBackground);
             border-bottom-color: var(--vscode-panel-activeBackground);
+        }
+        .close-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 14px;
+            font-size: 12px;
+        }
+        .close-btn:hover {
+            background-color: var(--vscode-notificationsErrorIcon-foreground);
+            color: var(--vscode-notifications-foreground);
         }
         #addTab {
             padding: 5px 10px;
@@ -138,8 +155,16 @@
             tabs.forEach(tab => {
                 const tabElement = document.createElement('div');
                 tabElement.className = `tab${tab.id === activeTabId ? ' active' : ''}`;
-                tabElement.textContent = tab.name;
                 tabElement.dataset.tabId = tab.id;
+                
+                const tabContent = document.createElement('div');
+                tabContent.style.position = 'relative';
+                tabContent.innerHTML = `
+                    ${tab.name}
+                    ${tabs.length > 1 ? '<div class="close-btn" onclick="closeTab(\'' + tab.id + '\', event)">×</div>' : ''}
+                `;
+                
+                tabElement.appendChild(tabContent);
                 tabElement.addEventListener('click', () => switchTab(tab.id));
                 tabsHeader.appendChild(tabElement);
             });
@@ -149,6 +174,23 @@
             addButton.textContent = '+';
             addButton.addEventListener('click', addNewTab);
             tabsHeader.appendChild(addButton);
+        }
+
+        function closeTab(tabId, event) {
+            event.stopPropagation();
+            if (tabs.length <= 1) return;
+            
+            const tabIndex = tabs.findIndex(t => t.id === tabId);
+            tabs.splice(tabIndex, 1);
+            
+            if (activeTabId === tabId) {
+                const newIndex = Math.min(tabIndex, tabs.length - 1);
+                activeTabId = tabs[newIndex]?.id || null;
+            }
+            
+            renderTabs();
+            loadActiveTab();
+            saveState();
         }
 
         function addNewTab() {
