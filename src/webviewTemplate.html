@@ -175,7 +175,7 @@
                 tabContent.style.paddingRight = '20px';
                 tabContent.innerHTML = `
                     <span style="display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">${tab.name}</span>
-                    ${tabs.length > 1 ? '<div class="close-btn" onclick="closeTab(\'' + tab.id + '\', event)">×</div>' : ''}
+                    ${(tabs.length > 1 && !tab.mainPrompt) ? `<div class="close-btn" onclick="closeTab('${tab.id}', event)">×</div>` : ''}
                 `;
                 
                 tabElement.appendChild(tabContent);
@@ -193,6 +193,11 @@
         function closeTab(tabId, event) {
             event.stopPropagation();
             if (tabs.length <= 1) return;
+            
+            const tab = tabs.find(t => t.id === tabId);
+            if (tab.mainPrompt) {
+                return;
+            }
             
             const tabIndex = tabs.findIndex(t => t.id === tabId);
             tabs.splice(tabIndex, 1);
@@ -264,6 +269,7 @@
             editor.addEventListener('input', () => {
                 document.getElementById('hiddenTextarea').value = editor.innerText;
                 saveState();
+                renderTabs(); // Re-render tabs to update close buttons
             });
 
             vscode.postMessage({ command: 'getFiles' });
