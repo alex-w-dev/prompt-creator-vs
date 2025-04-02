@@ -32,7 +32,7 @@
 3. Нажмите "Установить"
 
 ### Вручную
-1. Скачайте [файл](prompt-extension-stable.vsix) `prompt-extension-stable.vsix` из корня этого проекта.
+1. Скачайте [prompt-extension-stable.vsix](https://github.com/alex-w-dev/prompt-creator-vs/raw/refs/heads/master/prompt-extension-stable.vsix) из корня этого проекта.
 2. Вызовите меню установки приложения из VSIX файла (`Ctrl+Shift+P` > "Install extention from VSIX...") 
 
 ## Использование 📖
