@@ -1,109 +1,105 @@
-# Prompt Creator - VS Code Extension
+# Prompt Creator - Расширение для VS Code
 
-A powerful VS Code extension for creating AI prompts with contextual code snippets. Organize your prompts, select relevant files, and generate perfectly formatted context-rich prompts in seconds.
+Мощное расширение для VS Code, помогающее создавать AI-промпты с контекстом из кода. Организуйте промпты, выбирайте нужные файлы и генерируйте идеально отформатированные промпты с контекстом за секунды.
 
-## Features ✨
+## Возможности ✨
 
-- **Multi-Tab Interface**  
-  Organize multiple prompts in separate tabs with persistent workspace state.
+- **Интерфейс с вкладками**  
+  Работайте с несколькими промптами одновременно. Состояние сохраняется между сессиями.
 
-- **Smart File Selection**  
-  - Interactive file tree with folder navigation
-  - Checkbox system with automatic .gitignore respect
-  - Multi-select files/folders with intelligent parent-child selection
+- **Умный выбор файлов**  
+  - Интерактивное дерево файлов
+  - Учет правил `.gitignore`
+  - Групповой выбор файлов/папок
+  - Иерархические чекбоксы
 
-- **Rich Content Generation**  
-  - Combines text prompt with selected file contents
-  - Automatic Markdown code fence formatting
-  - Clipboard copy with success notification
+- **Продвинутое форматирование**  
+  - Комбинирование текста и кода
+  - Автоматическое создание блоков кода в Markdown
+  - Копирование в буфер обмена одним кликом
 
-- **Professional Tooling**  
-  - VS Code theme integration
-  - Persistent state management
-  - Error handling with user feedback
-  - Configurable through standard VS Code settings
+- **Профессиональная интеграция**  
+  - Темы VS Code
+  - Сохранение состояния
+  - Обработка ошибок
+  - Настройка через стандартный интерфейс VS Code
 
-## Installation 🛠️
+## Установка 🛠️
 
-### Marketplace Installation
-1. Open VS Code Extensions panel (`Ctrl+Shift+X`)
-2. Search for "Prompt Creator"
-3. Click Install
+### Через Marketplace (в планах, сейчас не работает)
+1. Откройте панель расширений (`Ctrl+Shift+X`)
+2. Найдите "Prompt Creator"
+3. Нажмите "Установить"
 
-### Manual Installation
+### Вручную
+1. Скачайте [файл](prompt-extension-stable.vsix) `prompt-extension-stable.vsix` из корня этого проекта.
+2. Вызовите меню установки приложения из VSIX файла (`Ctrl+Shift+P` > "Install extention from VSIX...") 
+
+## Использование 📖
+
+1. **Откройте интерфейс**  
+   Нажмите иконку комментария в строке состояния или выполните команду `Create Prompt`
+
+2. **Управление вкладками**  
+   - Создавайте новые вкладки кнопкой `+`
+   - Переключайтесь между вкладками
+   - Закрывайте ненужные (минимум 1 вкладка всегда активна)
+
+3. **Создание промпта**  
+   - Вводите текст в редакторе
+   - Раскрывайте папки стрелкой ▶
+   - Выбирайте файлы чекбоксами
+   - Состояния чекбоксов:
+     - ✓ = Все файлы выбраны
+     - ⬜ = Ничего не выбрано
+     - ▨ = Частичный выбор
+
+4. **Генерация промпта**  
+   Нажмите "Create Prompt" для:
+   - Объединения текста и выбранных файлов
+   - Форматирования в Markdown
+   - Автоматического копирования в буфер
+   - Уведомления об успехе
+
+## Настройки ⚙️
+
+Расширение автоматически:
+- Учитывает правила `.gitignore`
+- Исключает `node_modules` и `.git`
+- Сохраняет состояние между перезапусками
+
+Для кастомизации:
+1. Редактируйте `.gitignore` в проекте
+2. Используйте настройки VS Code (в будущих версиях)
+
+## Разработка 🧑💻
+
+### Сборка
 ```bash
-git clone https://github.com/alex-w-dev/prompt-creator-vs.git
-cd prompt-creator-vs
-npm install
-npm run compile:ts
-code --install-extension out/prompt-extension-1.0.26.vsix
+npm install         # Установка зависимостей
+npm run compile     # Сборка VSIX-пакета
+npm run watch       # Режим разработки
 ```
 
-## Usage 📖
-
-1. **Open Interface**  
-   Click the comment icon in status bar or run `Create Prompt` command
-
-2. **Tab Management**  
-   - Create new tabs with `+` button
-   - Switch between tabs with single click
-   - Close unnecessary tabs (minimum 1 tab maintained)
-
-3. **Prompt Composition**  
-   - Type main prompt in the editable content area
-   - Expand folders with ▶ arrows
-   - Select files using checkboxes
-   - Folder checkboxes support:
-     - ✓ = All files selected
-     - ⬜ = No files selected
-     - ▨ = Partial selection
-
-4. **Generate Prompt**  
-   Click "Create Prompt" to:
-   - Combine text input with selected files
-   - Format as Markdown with code fences
-   - Copy to clipboard automatically
-   - Show success notification
-
-## Configuration ⚙️
-
-The extension automatically:
-- Respects `.gitignore` rules
-- Excludes `node_modules` and `.git` by default
-- Persists workspace state between sessions
-
-To customize behavior:
-1. Add/update `.gitignore` files in your project
-2. Use VS Code settings (coming in future versions)
-
-## Development 🧑💻
-
-### Building from Source
-```bash
-npm install         # Install dependencies
-npm run compile     # Increment version & create VSIX
-npm run watch       # Development watch mode
-```
-
-### Architecture
+### Структура проекта
 ```
 src/
-├── extension.ts        # Main extension logic
-├── webviewTemplate.html # Interactive UI component
-test/                   # Test directory (to implement)
-package.json            # Extension manifest
+├── extension.ts        # Основная логика
+├── webviewTemplate.html # Интерфейс
+test/                   # Тесты (TODO)
+package.json            # Конфигурация
 ```
 
-### Contributing
-PRs welcome! Please:
-1. Fork repository
-2. Create feature branch
-3. Add tests for new functionality
-4. Submit PR with detailed description
+### Вклад в проект
+PR приветствуются! Порядок:
+1. Форкните репозиторий
+2. Создайте ветку с фичей
+3. Добавьте тесты
+4. Отправьте PR с описанием
 
-## License 📄
-[MIT License](LICENSE.txt) © 2025 Alex W. Dev
+## Лицензия 📄
+[MIT License](LICENSE.txt) © 2024 Alex W. Dev
 
 ---
 
-**Pro Tip:** Combine with GitHub Copilot or ChatGPT for enhanced AI pair-programming experience!
+**Совет:** Используйте с GitHub Copilot или ChatGPT для улучшения процесса разработки!
