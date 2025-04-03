@@ -183,6 +183,7 @@ export function activate(context: vscode.ExtensionContext) {
                   combinedText += "```\n";
                   combinedText += new TextDecoder().decode(content) + "\n";
                   combinedText += "```\n\n";
+                  combinedText += `#### END File ${fileContent}\n`;
                 } catch (error) {
                   vscode.window.showErrorMessage(`Error reading file: ${uri}`);
                 }
