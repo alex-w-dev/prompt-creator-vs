@@ -105,6 +105,16 @@ export function activate(context: vscode.ExtensionContext) {
           const savedActiveTabId =
             context.workspaceState.get<string>("activeTabId");
 
+          // Filter out deleted files from saved tabs
+          const existingUris = new Set(files.map((file) => file.toString()));
+          const filteredTabs = savedTabs.map((tab) => ({
+            ...tab,
+            selectedFiles: tab.selectedFiles.filter((uri) =>
+              existingUris.has(uri)
+            ),
+          }));
+          await context.workspaceState.update("tabs", filteredTabs);
+
           function buildFileTree(files: vscode.Uri[]): TreeNode[] {
             const root: TreeNode = {
               name: "",
@@ -156,7 +166,7 @@ export function activate(context: vscode.ExtensionContext) {
           panel.webview.postMessage({
             command: "receiveFiles",
             filesTree: filesTree,
-            savedTabs,
+            savedTabs: filteredTabs,
             savedActiveTabId,
           });
         } catch (error) {
