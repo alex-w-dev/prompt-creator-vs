@@ -59,119 +59,138 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
+      const getFilesAndSend = async () => {
+        try {
+          const gitignoreUris = await vscode.workspace.findFiles(
+            "**/.gitignore",
+            "",
+            1024
+          );
+          const ig = ignore();
+          let hasGitignore = false;
+
+          if (gitignoreUris.length > 0) {
+            hasGitignore = true;
+            for (const uri of gitignoreUris) {
+              try {
+                const content = await vscode.workspace.fs.readFile(uri);
+                const contentStr = new TextDecoder().decode(content);
+                ig.add(contentStr);
+              } catch (error) {
+                console.error(
+                  "Error reading .gitignore file:",
+                  uri.path,
+                  error
+                );
+              }
+            }
+          }
+
+          let files;
+          if (hasGitignore) {
+            const allFiles = await vscode.workspace.findFiles("**/*", "");
+            files = allFiles.filter((file) => {
+              const relativePath = vscode.workspace.asRelativePath(file);
+              return !ig.ignores(relativePath);
+            });
+          } else {
+            files = await vscode.workspace.findFiles(
+              "**/*",
+              "**/node_modules/**,**/.git/**"
+            );
+          }
+
+          const savedTabs =
+            context.workspaceState.get<TabState[]>("tabs") || [];
+          const savedActiveTabId =
+            context.workspaceState.get<string>("activeTabId");
+
+          function buildFileTree(files: vscode.Uri[]): TreeNode[] {
+            const root: TreeNode = {
+              name: "",
+              children: [],
+              isFile: false,
+            };
+            for (const file of files) {
+              const relativePath = vscode.workspace.asRelativePath(file);
+              const parts = relativePath.split("/");
+              let currentNode = root;
+              for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                let child = currentNode.children.find((c) => c.name === part);
+                if (!child) {
+                  child = {
+                    name: part,
+                    children: [],
+                    isFile: i === parts.length - 1,
+                    uri: i === parts.length - 1 ? file.toString() : undefined,
+                  };
+                  currentNode.children.push(child);
+                }
+                currentNode = child;
+              }
+              currentNode.isFile = true;
+              currentNode.uri = file.toString();
+            }
+
+            const sortChildren = (node: TreeNode) => {
+              node.children.sort((a, b) => {
+                if (!a.isFile && b.isFile) return -1;
+                if (a.isFile && !b.isFile) return 1;
+                return a.name.localeCompare(b.name);
+              });
+              node.children.forEach((child) => {
+                if (!child.isFile) {
+                  sortChildren(child);
+                }
+              });
+            };
+
+            sortChildren(root);
+
+            return root.children;
+          }
+
+          const filesTree = buildFileTree(files);
+
+          panel.webview.postMessage({
+            command: "receiveFiles",
+            filesTree: filesTree,
+            savedTabs,
+            savedActiveTabId,
+          });
+        } catch (error) {
+          vscode.window.showErrorMessage("Error fetching files.");
+        }
+      };
+
+      // Create file system watchers
+      const watcher = vscode.workspace.createFileSystemWatcher("**/*");
+      const gitignoreWatcher =
+        vscode.workspace.createFileSystemWatcher("**/.gitignore");
+
+      const handleFileSystemChange = () => {
+        getFilesAndSend();
+      };
+
+      watcher.onDidCreate(handleFileSystemChange);
+      watcher.onDidDelete(handleFileSystemChange);
+      watcher.onDidChange(handleFileSystemChange);
+      gitignoreWatcher.onDidCreate(handleFileSystemChange);
+      gitignoreWatcher.onDidDelete(handleFileSystemChange);
+      gitignoreWatcher.onDidChange(handleFileSystemChange);
+
+      panel.onDidDispose(() => {
+        watcher.dispose();
+        gitignoreWatcher.dispose();
+      });
+
       panel.webview.onDidReceiveMessage(
         async (message) => {
           switch (message.command) {
             case "getFiles":
-              try {
-                const gitignoreUris = await vscode.workspace.findFiles(
-                  "**/.gitignore",
-                  "",
-                  1024
-                );
-                const ig = ignore();
-                let hasGitignore = false;
-
-                if (gitignoreUris.length > 0) {
-                  hasGitignore = true;
-                  for (const uri of gitignoreUris) {
-                    try {
-                      const content = await vscode.workspace.fs.readFile(uri);
-                      const contentStr = new TextDecoder().decode(content);
-                      ig.add(contentStr);
-                    } catch (error) {
-                      console.error(
-                        "Error reading .gitignore file:",
-                        uri.path,
-                        error
-                      );
-                    }
-                  }
-                }
-
-                let files;
-                if (hasGitignore) {
-                  const allFiles = await vscode.workspace.findFiles("**/*", "");
-                  files = allFiles.filter((file) => {
-                    const relativePath = vscode.workspace.asRelativePath(file);
-                    return !ig.ignores(relativePath);
-                  });
-                } else {
-                  files = await vscode.workspace.findFiles(
-                    "**/*",
-                    "**/node_modules/**,**/.git/**"
-                  );
-                }
-
-                const savedTabs =
-                  context.workspaceState.get<TabState[]>("tabs") || [];
-                const savedActiveTabId =
-                  context.workspaceState.get<string>("activeTabId");
-
-                function buildFileTree(files: vscode.Uri[]): TreeNode[] {
-                  const root: TreeNode = {
-                    name: "",
-                    children: [],
-                    isFile: false,
-                  };
-                  for (const file of files) {
-                    const relativePath = vscode.workspace.asRelativePath(file);
-                    const parts = relativePath.split("/");
-                    let currentNode = root;
-                    for (let i = 0; i < parts.length; i++) {
-                      const part = parts[i];
-                      let child = currentNode.children.find(
-                        (c) => c.name === part
-                      );
-                      if (!child) {
-                        child = {
-                          name: part,
-                          children: [],
-                          isFile: i === parts.length - 1,
-                          uri:
-                            i === parts.length - 1
-                              ? file.toString()
-                              : undefined,
-                        };
-                        currentNode.children.push(child);
-                      }
-                      currentNode = child;
-                    }
-                    currentNode.isFile = true;
-                    currentNode.uri = file.toString();
-                  }
-
-                  const sortChildren = (node: TreeNode) => {
-                    node.children.sort((a, b) => {
-                      if (!a.isFile && b.isFile) return -1;
-                      if (a.isFile && !b.isFile) return 1;
-                      return a.name.localeCompare(b.name);
-                    });
-                    node.children.forEach((child) => {
-                      if (!child.isFile) {
-                        sortChildren(child);
-                      }
-                    });
-                  };
-
-                  sortChildren(root);
-
-                  return root.children;
-                }
-
-                const filesTree = buildFileTree(files);
-
-                panel.webview.postMessage({
-                  command: "receiveFiles",
-                  filesTree: filesTree,
-                  savedTabs,
-                  savedActiveTabId,
-                });
-              } catch (error) {
-                vscode.window.showErrorMessage("Error fetching files.");
-              }
+              await getFilesAndSend();
               break;
-
             case "createPrompt":
               let combinedText = message.mainPrompt + "\n\n";
               for (const uri of message.selectedFiles) {
@@ -193,12 +212,10 @@ export function activate(context: vscode.ExtensionContext) {
                 "Prompt copied to clipboard!"
               );
               break;
-
             case "saveState":
               context.workspaceState.update("tabs", message.tabs);
               context.workspaceState.update("activeTabId", message.activeTabId);
               break;
-
             case "alert":
               vscode.window.showWarningMessage(message.text);
               break;
