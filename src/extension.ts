@@ -226,6 +226,9 @@ export function activate(context: vscode.ExtensionContext) {
               context.workspaceState.update("tabs", message.tabs);
               context.workspaceState.update("activeTabId", message.activeTabId);
               break;
+            case "applyAIResponse":
+              await handleAIResponse(message.text);
+              break;
             case "alert":
               vscode.window.showWarningMessage(message.text);
               break;
@@ -237,3 +240,59 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 }
+
+async function handleAIResponse(text: string) {
+  const fileBlocks = parseAIText(text);
+  if (fileBlocks.length === 0) {
+    vscode.window.showErrorMessage("Не удалось распознать файлы в ответе AI");
+    return;
+  }
+
+  try {
+    for (const block of fileBlocks) {
+      const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+      if (!workspacePath) {
+        vscode.window.showErrorMessage("Рабочая область не открыта");
+        return;
+      }
+
+      const fullPath = vscode.Uri.joinPath(
+        vscode.Uri.file(workspacePath),
+        ...block.filePath.split("/")
+      );
+      const encoder = new TextEncoder();
+      const newContent = encoder.encode(block.content);
+
+      try {
+        await vscode.workspace.fs.writeFile(fullPath, newContent);
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Ошибка записи файла ${block.filePath}: ${error}`
+        );
+      }
+    }
+    vscode.window.showInformationMessage(
+      `Успешно обновлено ${fileBlocks.length} файлов`
+    );
+  } catch (error) {
+    vscode.window.showErrorMessage(`Ошибка обработки ответа AI: ${error}`);
+  }
+}
+
+function parseAIText(text: string): { filePath: string; content: string }[] {
+  const pattern = /^([^\s]+?)\n```(?:.*?)\n([\s\S]*?)```/gm;
+  const blocks: { filePath: string; content: string }[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.length >= 3) {
+      blocks.push({
+        filePath: match[1].trim(),
+        content: match[2].trimEnd(),
+      });
+    }
+  }
+
+  return blocks;
+}
+

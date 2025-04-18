@@ -134,6 +134,21 @@
         input[type="checkbox"] {
             cursor: pointer;
         }
+        #aiResponse {
+            width: 100%;
+            height: 150px;
+            margin-top: 10px;
+            padding: 4px 8px;
+            font-family: var(--vscode-font-family);
+            font-size: 13px;
+            color: var(--vscode-input-foreground);
+            background-color: var(--vscode-input-background);
+            border: 1px solid var(--vscode-input-border);
+        }
+        .apply-button {
+            margin-top: 5px;
+            height: 32px;
+        }
     </style>
 </head>
 <body>
@@ -141,6 +156,26 @@
     <div id="editorContainer" contenteditable="true"></div>
     <div id="fileList" class="file-list"></div>
     <button onclick="createPrompt()">Create Prompt</button>
+    
+    <textarea id="aiResponse" placeholder="Ответ AI
+Формат ответа от нейросети должен выглядеть так: 
+<путь до файла>
+```<возможно, язык на которм написан файл>
+<полное содержимое файла>
+```
+Например:
+src/app.ts
+```typescipt
+console.log(1)
+```
+src/styles/index.css
+```css
+body {
+  color: red;
+}
+```
+Конец примера формата ответа от нейросети."></textarea>
+    <button class="apply-button" onclick="applyAIResponse()">Применить</button>
 
     <script>
         const vscode = acquireVsCodeApi();
@@ -159,6 +194,14 @@
                 mainPrompt: '',
                 selectedFiles: []
             };
+        }
+
+        function applyAIResponse() {
+            const responseText = document.getElementById('aiResponse').value;
+            vscode.postMessage({
+                command: 'applyAIResponse',
+                text: responseText
+            });
         }
 
         function renderTabs() {
