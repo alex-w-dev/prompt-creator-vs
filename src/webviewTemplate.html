@@ -1,163 +1,168 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src {{cspSource}} 'unsafe-inline' 'unsafe-eval';">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src {{cspSource}} 'unsafe-inline' 'unsafe-eval';"
+    />
     <style>
-        body { 
-            padding: 10px; 
-            font-family: var(--vscode-font-family); 
-            color: var(--vscode-editor-foreground);
-            background-color: var(--vscode-editor-background);
-            margin: 0;
-            height: calc(100vh - 20px);
-        }
-        #tabsHeader {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-            align-items: center;
-            overflow-x: auto;
-        }
-        .tab {
-            padding: 5px 10px 5px 10px;
-            cursor: pointer;
-            border: 1px solid var(--vscode-panel-border);
-            background-color: var(--vscode-panel-background);
-            border-radius: 3px 3px 0 0;
-            user-select: none;
-            position: relative;
-            white-space: nowrap;
-            min-width: 80px;
-            flex-shrink: 0;
-            height: 32px;
-            box-sizing: border-box;
-        }
-        .tab.active {
-            background-color: var(--vscode-panel-activeBackground);
-            border-bottom-color: var(--vscode-panel-activeBackground);
-        }
-        .close-btn {
-            position: absolute;
-            right: 0px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 14px;
-            font-size: 12px;
-        }
-        .close-btn:hover {
-            background-color: var(--vscode-notificationsErrorIcon-foreground);
-            color: var(--vscode-notifications-foreground);
-        }
-        #addTab {
-            padding: 0;
-            margin-top: 0px;
-            cursor: pointer;
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none;
-            border-radius: 3px;
-            width: 26px;
-            height: 26px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #editorContainer { 
-            height: 150px; 
-            margin-bottom: 15px; 
-            border: 1px solid var(--vscode-input-border);
-            overflow: auto;
-            resize: vertical;
-            white-space: pre-wrap;
-            line-height: 1.6;
-            padding: 4px 8px;
-            font-family: var(--vscode-font-family);
-            font-size: 13px;
-            color: var(--vscode-input-foreground);
-            background-color: var(--vscode-input-background);
-            outline: none;
-        }
-        .file-list { 
-            max-height: 300px; 
-            overflow-y: auto; 
-            margin: 10px 0; 
-        }
-        .folder {
-            margin: 5px 0;
-        }
-        .folder-header {
-            cursor: pointer;
-            padding: 2px 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            user-select: none;
-        }
-        .folder-header:hover {
-            background-color: var(--vscode-list-hoverBackground);
-        }
-        .toggle {
-            width: 10px;
-            display: inline-block;
-        }
-        .folder-children {
-            margin-left: 20px;
-        }
-        .file-item {
-            margin: 2px 0;
-            padding: 2px 5px;
-        }
-        .file-item label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-        button { 
-            padding: 10px; 
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none; 
-            cursor: pointer; 
-            width: 100%;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        input[type="checkbox"] {
-            cursor: pointer;
-        }
-        #aiResponse {
-            width: 100%;
-            height: 150px;
-            margin-top: 10px;
-            padding: 4px 8px;
-            font-family: var(--vscode-font-family);
-            font-size: 13px;
-            color: var(--vscode-input-foreground);
-            background-color: var(--vscode-input-background);
-            border: 1px solid var(--vscode-input-border);
-        }
-        .apply-button {
-            margin-top: 5px;
-            height: 32px;
-        }
+      body {
+        padding: 10px;
+        font-family: var(--vscode-font-family);
+        color: var(--vscode-editor-foreground);
+        background-color: var(--vscode-editor-background);
+        margin: 0;
+        height: calc(100vh - 20px);
+      }
+      #tabsHeader {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 10px;
+        align-items: center;
+        overflow-x: auto;
+      }
+      .tab {
+        padding: 5px 10px 5px 10px;
+        cursor: pointer;
+        border: 1px solid var(--vscode-panel-border);
+        background-color: var(--vscode-panel-background);
+        border-radius: 3px 3px 0 0;
+        user-select: none;
+        position: relative;
+        white-space: nowrap;
+        min-width: 80px;
+        flex-shrink: 0;
+        height: 32px;
+        box-sizing: border-box;
+      }
+      .tab.active {
+        background-color: var(--vscode-panel-activeBackground);
+        border-bottom-color: var(--vscode-panel-activeBackground);
+      }
+      .close-btn {
+        position: absolute;
+        right: 0px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 14px;
+        font-size: 12px;
+      }
+      .close-btn:hover {
+        background-color: var(--vscode-notificationsErrorIcon-foreground);
+        color: var(--vscode-notifications-foreground);
+      }
+      #addTab {
+        padding: 0;
+        margin-top: 0px;
+        cursor: pointer;
+        background-color: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        border: none;
+        border-radius: 3px;
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #editorContainer {
+        height: 150px;
+        margin-bottom: 15px;
+        border: 1px solid var(--vscode-input-border);
+        overflow: auto;
+        resize: vertical;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        padding: 4px 8px;
+        font-family: var(--vscode-font-family);
+        font-size: 13px;
+        color: var(--vscode-input-foreground);
+        background-color: var(--vscode-input-background);
+        outline: none;
+      }
+      .file-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin: 10px 0;
+      }
+      .folder {
+        margin: 5px 0;
+      }
+      .folder-header {
+        cursor: pointer;
+        padding: 2px 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        user-select: none;
+      }
+      .folder-header:hover {
+        background-color: var(--vscode-list-hoverBackground);
+      }
+      .toggle {
+        width: 10px;
+        display: inline-block;
+      }
+      .folder-children {
+        margin-left: 20px;
+      }
+      .file-item {
+        margin: 2px 0;
+        padding: 2px 5px;
+      }
+      .file-item label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+      }
+      button {
+        padding: 10px;
+        background-color: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: var(--vscode-button-hoverBackground);
+      }
+      input[type="checkbox"] {
+        cursor: pointer;
+      }
+      #aiResponse {
+        width: 100%;
+        height: 150px;
+        margin-top: 10px;
+        padding: 4px 8px;
+        font-family: var(--vscode-font-family);
+        font-size: 13px;
+        color: var(--vscode-input-foreground);
+        background-color: var(--vscode-input-background);
+        border: 1px solid var(--vscode-input-border);
+      }
+      .apply-button {
+        margin-top: 5px;
+        height: 32px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="tabsHeader"></div>
     <div id="editorContainer" contenteditable="true"></div>
     <div id="fileList" class="file-list"></div>
     <button onclick="createPrompt()">Create Prompt</button>
-    
-    <textarea id="aiResponse" placeholder="Ответ AI
+
+    <textarea
+      id="aiResponse"
+      placeholder="Ответ AI
 Формат ответа от нейросети должен выглядеть так: 
 <путь до файла>
 ```<возможно, язык на которм написан файл>
@@ -174,254 +179,289 @@ body {
   color: red;
 }
 ```
-Конец примера формата ответа от нейросети."></textarea>
+Конец примера формата ответа от нейросети."
+    ></textarea>
     <button class="apply-button" onclick="applyAIResponse()">Применить</button>
 
     <script>
-        const vscode = acquireVsCodeApi();
-        let editor = null;
-        let tabs = [];
-        let activeTabId = null;
+      const vscode = acquireVsCodeApi();
+      let editor = null;
+      let tabs = [];
+      let activeTabId = null;
 
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
+      function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+      }
 
-        function createNewTab() {
-            return {
-                id: generateId(),
-                name: `Tab ${tabs.length + 1}`,
-                mainPrompt: '',
-                selectedFiles: []
-            };
-        }
+      function createNewTab() {
+        return {
+          id: generateId(),
+          name: `Tab ${tabs.length + 1}`,
+          mainPrompt: "",
+          selectedFiles: [],
+        };
+      }
 
-        function applyAIResponse() {
-            const responseText = document.getElementById('aiResponse').value;
-            vscode.postMessage({
-                command: 'applyAIResponse',
-                text: responseText
-            });
-        }
-
-        function renderTabs() {
-            const tabsHeader = document.getElementById('tabsHeader');
-            tabsHeader.innerHTML = '';
-            
-            tabs.forEach(tab => {
-                const tabElement = document.createElement('div');
-                tabElement.className = `tab${tab.id === activeTabId ? ' active' : ''}`;
-                tabElement.dataset.tabId = tab.id;
-                
-                const tabContent = document.createElement('div');
-                tabContent.style.position = 'relative';
-                tabContent.style.paddingRight = '20px';
-                tabContent.innerHTML = `
-                    <span style="display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">${tab.name}</span>
-                    ${(tabs.length > 1 && !tab.mainPrompt.trim()) ? `<div class="close-btn" onclick="closeTab('${tab.id}', event)">×</div>` : ''}
-                `;
-                
-                tabElement.appendChild(tabContent);
-                tabElement.addEventListener('click', () => switchTab(tab.id));
-                tabsHeader.appendChild(tabElement);
-            });
-
-            const addButton = document.createElement('button');
-            addButton.id = 'addTab';
-            addButton.textContent = '+';
-            addButton.addEventListener('click', addNewTab);
-            tabsHeader.appendChild(addButton);
-        }
-
-        function closeTab(tabId, event) {
-            event.stopPropagation();
-            if (tabs.length <= 1) return;
-            
-            const tab = tabs.find(t => t.id === tabId);
-            if (tab.mainPrompt.trim()) {
-                return;
-            }
-            
-            const tabIndex = tabs.findIndex(t => t.id === tabId);
-            tabs.splice(tabIndex, 1);
-            
-            if (activeTabId === tabId) {
-                const newIndex = Math.min(tabIndex, tabs.length - 1);
-                activeTabId = tabs[newIndex]?.id || null;
-            }
-            
-            renderTabs();
-            loadActiveTab();
-            saveState();
-        }
-
-        function addNewTab() {
-            const newTab = createNewTab();
-            tabs.push(newTab);
-            activeTabId = newTab.id;
-            renderTabs();
-            loadActiveTab();
-            saveState();
-        }
-
-        function switchTab(tabId) {
-            saveCurrentTabState();
-            activeTabId = tabId;
-            renderTabs();
-            loadActiveTab();
-        }
-
-        function saveCurrentTabState() {
-            const activeTab = tabs.find(t => t.id === activeTabId);
-            if (activeTab) {
-                activeTab.mainPrompt = document.getElementById('hiddenTextarea').value;
-                activeTab.selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
-                    .map(checkbox => checkbox.value);
-            }
-        }
-
-        function loadActiveTab() {
-            const activeTab = tabs.find(t => t.id === activeTabId);
-            if (!activeTab) return;
-
-            editor.innerText = activeTab.mainPrompt;
-            document.getElementById('hiddenTextarea').value = activeTab.mainPrompt;
-
-            document.querySelectorAll('.file-checkbox').forEach(checkbox => {
-                checkbox.checked = activeTab.selectedFiles.includes(checkbox.value);
-                updateFolderCheckboxes(checkbox);
-            });
-        }
-
-        function updateFolderCheckboxes(fileCheckbox) {
-            let currentFolder = fileCheckbox.closest('.folder');
-            while (currentFolder) {
-                const folderCheckbox = currentFolder.querySelector('.folder-checkbox');
-                const fileCheckboxesInFolder = currentFolder.querySelectorAll('.file-checkbox');
-                const checkedCount = Array.from(fileCheckboxesInFolder).filter(fc => fc.checked).length;
-                folderCheckbox.indeterminate = checkedCount > 0 && checkedCount < fileCheckboxesInFolder.length;
-                folderCheckbox.checked = checkedCount === fileCheckboxesInFolder.length && checkedCount > 0;
-                currentFolder = currentFolder.parentElement.closest('.folder');
-            }
-        }
-
-        window.addEventListener('load', () => {
-            editor = document.getElementById('editorContainer');
-            document.getElementById('hiddenTextarea').value = editor.innerText;
-            
-            editor.addEventListener('input', () => {
-                document.getElementById('hiddenTextarea').value = editor.innerText;
-                saveState();
-                renderTabs(); // Re-render tabs to update close buttons
-            });
-
-            vscode.postMessage({ command: 'getFiles' });
+      function applyAIResponse() {
+        const responseText = document.getElementById("aiResponse").value;
+        vscode.postMessage({
+          command: "applyAIResponse",
+          text: responseText,
         });
+      }
 
-        window.addEventListener('message', e => {
-            if (e.data.command === 'receiveFiles') {
-                tabs = e.data.savedTabs || [];
-                activeTabId = e.data.savedActiveTabId || (tabs.length > 0 ? tabs[0].id : null);
+      function renderTabs() {
+        const tabsHeader = document.getElementById("tabsHeader");
+        tabsHeader.innerHTML = "";
 
-                if (tabs.length === 0) {
-                    const newTab = createNewTab();
-                    tabs.push(newTab);
-                    activeTabId = newTab.id;
-                }
+        tabs.forEach((tab) => {
+          const tabElement = document.createElement("div");
+          tabElement.className = `tab${
+            tab.id === activeTabId ? " active" : ""
+          }`;
+          tabElement.dataset.tabId = tab.id;
 
-                renderTabs();
-
-                function generateNodeHtml(node, level = 0) {
-                    if (node.isFile) {
-                        return `
-                            <div class="file-item" style="padding-left: ${level * 20}px;">
-                                <label>
-                                    <input type="checkbox" class="file-checkbox" value="${node.uri}">
-                                    ${node.name}
-                                </label>
-                            </div>
-                        `;
-                    } else {
-                        const childrenHtml = node.children.map(child => generateNodeHtml(child, level + 1)).join('');
-                        return `
-                            <div class="folder">
-                                <div class="folder-header" style="padding-left: ${level * 20}px;">
-                                    <span class="toggle">▶</span>
-                                    <input type="checkbox" class="folder-checkbox">
-                                    <span class="folder-name">${node.name}</span>
-                                </div>
-                                <div class="folder-children" style="display: none;">
-                                    ${childrenHtml}
-                                </div>
-                            </div>
-                        `;
+          const tabContent = document.createElement("div");
+          tabContent.style.position = "relative";
+          tabContent.style.paddingRight = "20px";
+          tabContent.innerHTML = `
+                    <span style="display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">${
+                      tab.name
+                    }</span>
+                    ${
+                      tabs.length > 1 && !tab.mainPrompt.trim()
+                        ? `<div class="close-btn" onclick="closeTab('${tab.id}', event)">×</div>`
+                        : ""
                     }
-                }
+                `;
 
-                const filesHtml = e.data.filesTree.map(node => generateNodeHtml(node, 0)).join('');
-                document.getElementById('fileList').innerHTML = filesHtml;
-
-                document.querySelectorAll('.toggle').forEach(toggle => {
-                    toggle.addEventListener('click', () => {
-                        const folderChildren = toggle.closest('.folder-header').nextElementSibling;
-                        const isCollapsed = folderChildren.style.display === 'none';
-                        folderChildren.style.display = isCollapsed ? 'block' : 'none';
-                        toggle.textContent = isCollapsed ? '▼' : '▶';
-                    });
-                });
-
-                document.querySelectorAll('.folder-checkbox').forEach(checkbox => {
-                    checkbox.addEventListener('change', (e) => {
-                        const folder = checkbox.closest('.folder');
-                        const fileCheckboxes = folder.querySelectorAll('.file-checkbox');
-                        const isChecked = checkbox.checked;
-                        fileCheckboxes.forEach(fileCheckbox => {
-                            fileCheckbox.checked = isChecked;
-                            fileCheckbox.dispatchEvent(new Event('change'));
-                        });
-                    });
-                });
-
-                loadActiveTab();
-
-                document.querySelectorAll('.file-checkbox').forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        saveState();
-                        updateFolderCheckboxes(this);
-                    });
-                    updateFolderCheckboxes(checkbox);
-                });
-            }
+          tabElement.appendChild(tabContent);
+          tabElement.addEventListener("click", () => switchTab(tab.id));
+          tabsHeader.appendChild(tabElement);
         });
 
-        function saveState() {
-            saveCurrentTabState();
-            vscode.postMessage({
-                command: 'saveState',
-                tabs: tabs,
-                activeTabId: activeTabId
-            });
+        const addButton = document.createElement("button");
+        addButton.id = "addTab";
+        addButton.textContent = "+";
+        addButton.addEventListener("click", addNewTab);
+        tabsHeader.appendChild(addButton);
+      }
+
+      function closeTab(tabId, event) {
+        event.stopPropagation();
+        if (tabs.length <= 1) return;
+
+        const tab = tabs.find((t) => t.id === tabId);
+        if (tab.mainPrompt.trim()) {
+          return;
         }
 
-        function createPrompt() {
-            const activeTab = tabs.find(t => t.id === activeTabId);
-            if (!activeTab) return;
+        const tabIndex = tabs.findIndex((t) => t.id === tabId);
+        tabs.splice(tabIndex, 1);
 
-            const mainPrompt = activeTab.mainPrompt;
-            const files = activeTab.selectedFiles;
-            
-            if (!mainPrompt && files.length === 0) {
-                vscode.postMessage({ command: 'alert', text: 'Please enter a prompt or select files!' });
-                return;
+        if (activeTabId === tabId) {
+          const newIndex = Math.min(tabIndex, tabs.length - 1);
+          activeTabId = tabs[newIndex]?.id || null;
+        }
+
+        renderTabs();
+        loadActiveTab();
+        saveState();
+      }
+
+      function addNewTab() {
+        const newTab = createNewTab();
+        tabs.push(newTab);
+        activeTabId = newTab.id;
+        renderTabs();
+        loadActiveTab();
+        saveState();
+      }
+
+      function switchTab(tabId) {
+        saveCurrentTabState();
+        activeTabId = tabId;
+        renderTabs();
+        loadActiveTab();
+      }
+
+      function saveCurrentTabState() {
+        const activeTab = tabs.find((t) => t.id === activeTabId);
+        if (activeTab) {
+          activeTab.mainPrompt =
+            document.getElementById("hiddenTextarea").value;
+          activeTab.selectedFiles = Array.from(
+            document.querySelectorAll(".file-checkbox:checked")
+          ).map((checkbox) => checkbox.value);
+        }
+      }
+
+      function loadActiveTab() {
+        const activeTab = tabs.find((t) => t.id === activeTabId);
+        if (!activeTab) return;
+
+        editor.innerText = activeTab.mainPrompt;
+        document.getElementById("hiddenTextarea").value = activeTab.mainPrompt;
+
+        document.querySelectorAll(".file-checkbox").forEach((checkbox) => {
+          checkbox.checked = activeTab.selectedFiles.includes(checkbox.value);
+          updateFolderCheckboxes(checkbox);
+        });
+      }
+
+      function updateFolderCheckboxes(fileCheckbox) {
+        let currentFolder = fileCheckbox.closest(".folder");
+        while (currentFolder) {
+          const folderCheckbox =
+            currentFolder.querySelector(".folder-checkbox");
+          const fileCheckboxesInFolder =
+            currentFolder.querySelectorAll(".file-checkbox");
+          const checkedCount = Array.from(fileCheckboxesInFolder).filter(
+            (fc) => fc.checked
+          ).length;
+          folderCheckbox.indeterminate =
+            checkedCount > 0 && checkedCount < fileCheckboxesInFolder.length;
+          folderCheckbox.checked =
+            checkedCount === fileCheckboxesInFolder.length && checkedCount > 0;
+          currentFolder = currentFolder.parentElement.closest(".folder");
+        }
+      }
+
+      window.addEventListener("load", () => {
+        editor = document.getElementById("editorContainer");
+        document.getElementById("hiddenTextarea").value = editor.innerText;
+
+        editor.addEventListener("input", () => {
+          document.getElementById("hiddenTextarea").value = editor.innerText;
+          saveState();
+          renderTabs(); // Re-render tabs to update close buttons
+        });
+
+        vscode.postMessage({ command: "getFiles" });
+      });
+
+      function generateNodeHtml(node, level = 0) {
+        if (node.isFile) {
+          return `
+                  <div class="file-item" style="padding-left: ${level * 20}px;">
+                      <label>
+                          <input type="checkbox" class="file-checkbox" value="${
+                            node.uri
+                          }">
+                          ${node.name}
+                      </label>
+                  </div>
+              `;
+        } else {
+          const childrenHtml = node.children
+            .map((child) => generateNodeHtml(child, level + 1))
+            .join("");
+          return `
+                  <div class="folder">
+                      <div class="folder-header" style="padding-left: ${
+                        level * 20
+                      }px;">
+                          <span class="toggle">▶</span>
+                          <input type="checkbox" class="folder-checkbox">
+                          <span class="folder-name">${node.name}</span>
+                      </div>
+                      <div class="folder-children" style="display: none;">
+                          ${childrenHtml}
+                      </div>
+                  </div>
+              `;
+        }
+      }
+
+      function renderFileTree(e) {
+        const filesHtml = e.data.filesTree
+          .map((node) => generateNodeHtml(node, 0))
+          .join("");
+        document.getElementById("fileList").innerHTML = filesHtml;
+
+        document.querySelectorAll(".toggle").forEach((toggle) => {
+          toggle.addEventListener("click", () => {
+            const folderChildren =
+              toggle.closest(".folder-header").nextElementSibling;
+            const isCollapsed = folderChildren.style.display === "none";
+            folderChildren.style.display = isCollapsed ? "block" : "none";
+            toggle.textContent = isCollapsed ? "▼" : "▶";
+          });
+        });
+
+        document.querySelectorAll(".folder-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("change", (e) => {
+            const folder = checkbox.closest(".folder");
+            const fileCheckboxes = folder.querySelectorAll(".file-checkbox");
+            const isChecked = checkbox.checked;
+            fileCheckboxes.forEach((fileCheckbox) => {
+              fileCheckbox.checked = isChecked;
+              fileCheckbox.dispatchEvent(new Event("change"));
+            });
+          });
+        });
+
+        document.querySelectorAll(".file-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            saveState();
+            updateFolderCheckboxes(this);
+          });
+          updateFolderCheckboxes(checkbox);
+        });
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.data.command === "receiveFiles") {
+          renderFileTree(e);
+
+          if (!activeTabId) {
+            tabs = e.data.savedTabs || [];
+            activeTabId =
+              e.data.savedActiveTabId || (tabs.length > 0 ? tabs[0].id : null);
+
+            if (tabs.length === 0) {
+              const newTab = createNewTab();
+              tabs.push(newTab);
+              activeTabId = newTab.id;
             }
-            
-            vscode.postMessage({ 
-                command: 'createPrompt', 
-                mainPrompt: mainPrompt, 
-                selectedFiles: files 
-            });
+
+            renderTabs();
+            loadActiveTab();
+          }
         }
+      });
+
+      function saveState() {
+        saveCurrentTabState();
+        vscode.postMessage({
+          command: "saveState",
+          tabs: tabs,
+          activeTabId: activeTabId,
+        });
+      }
+
+      function createPrompt() {
+        const activeTab = tabs.find((t) => t.id === activeTabId);
+        if (!activeTab) return;
+
+        const mainPrompt = activeTab.mainPrompt;
+        const files = activeTab.selectedFiles;
+
+        if (!mainPrompt && files.length === 0) {
+          vscode.postMessage({
+            command: "alert",
+            text: "Please enter a prompt or select files!",
+          });
+          return;
+        }
+
+        vscode.postMessage({
+          command: "createPrompt",
+          mainPrompt: mainPrompt,
+          selectedFiles: files,
+        });
+      }
     </script>
-    <textarea id="hiddenTextarea" style="display: none;"></textarea>
-</body>
+    <textarea id="hiddenTextarea" style="display: none"></textarea>
+  </body>
 </html>
