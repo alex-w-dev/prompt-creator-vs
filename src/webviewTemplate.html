@@ -340,21 +340,22 @@ body {
         vscode.postMessage({ command: "getFiles" });
       });
 
-      function generateNodeHtml(node, level = 0) {
+      function generateNodeHtml(node, level = 0, selectedFiles) {
         if (node.isFile) {
+          const isChecked = selectedFiles.includes(node.uri);
           return `
                   <div class="file-item" style="padding-left: ${level * 20}px;">
                       <label>
                           <input type="checkbox" class="file-checkbox" value="${
                             node.uri
-                          }">
+                          }" ${isChecked ? "checked" : ""}>
                           ${node.name}
                       </label>
                   </div>
               `;
         } else {
           const childrenHtml = node.children
-            .map((child) => generateNodeHtml(child, level + 1))
+            .map((child) => generateNodeHtml(child, level + 1, selectedFiles))
             .join("");
           return `
                   <div class="folder">
@@ -374,8 +375,11 @@ body {
       }
 
       function renderFileTree(e) {
+        const activeTab = tabs.find((t) => t.id === activeTabId);
+        const selectedFiles = activeTab ? activeTab.selectedFiles : [];
+
         const filesHtml = e.data.filesTree
-          .map((node) => generateNodeHtml(node, 0))
+          .map((node) => generateNodeHtml(node, 0, selectedFiles))
           .join("");
         document.getElementById("fileList").innerHTML = filesHtml;
 
@@ -412,22 +416,19 @@ body {
 
       window.addEventListener("message", (e) => {
         if (e.data.command === "receiveFiles") {
-          renderFileTree(e);
+          tabs = e.data.savedTabs || [];
+          activeTabId =
+            e.data.savedActiveTabId || (tabs.length > 0 ? tabs[0].id : null);
 
-          if (!activeTabId) {
-            tabs = e.data.savedTabs || [];
-            activeTabId =
-              e.data.savedActiveTabId || (tabs.length > 0 ? tabs[0].id : null);
-
-            if (tabs.length === 0) {
-              const newTab = createNewTab();
-              tabs.push(newTab);
-              activeTabId = newTab.id;
-            }
-
-            renderTabs();
-            loadActiveTab();
+          if (tabs.length === 0) {
+            const newTab = createNewTab();
+            tabs.push(newTab);
+            activeTabId = newTab.id;
           }
+
+          renderTabs();
+          renderFileTree(e);
+          loadActiveTab();
         }
       });
 

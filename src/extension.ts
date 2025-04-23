@@ -168,6 +168,8 @@ export function activate(context: vscode.ExtensionContext) {
             filesTree: filesTree,
             savedTabs: filteredTabs,
             savedActiveTabId,
+            // Send selected files for current state preservation
+            selectedFiles: filteredTabs.find(t => t.id === savedActiveTabId)?.selectedFiles || []
           });
         } catch (error) {
           vscode.window.showErrorMessage("Error fetching files.");
