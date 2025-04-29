@@ -53,6 +53,9 @@ export function activate(context: vscode.ExtensionContext) {
           panel.webview.cspSource
         );
         panel.webview.html = html;
+        vscode.window.showInformationMessage(
+          "Html regenerated"
+        );
       } catch (error) {
         vscode.window.showErrorMessage("Failed to load webview template.");
         panel.dispose();
@@ -64,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
           const gitignoreUris = await vscode.workspace.findFiles(
             "**/.gitignore",
             "",
-            1024
+            10
           );
           const ig = ignore();
           let hasGitignore = false;
@@ -87,17 +90,17 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           let files;
+          const allFiles = await vscode.workspace.findFiles(
+            "**/*",
+            "**/node_modules/**,**/.git/**"
+          );
           if (hasGitignore) {
-            const allFiles = await vscode.workspace.findFiles("**/*", "");
             files = allFiles.filter((file) => {
               const relativePath = vscode.workspace.asRelativePath(file);
               return !ig.ignores(relativePath);
             });
           } else {
-            files = await vscode.workspace.findFiles(
-              "**/*",
-              "**/node_modules/**,**/.git/**"
-            );
+            files = allFiles;
           }
 
           const savedTabs =
@@ -175,27 +178,6 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showErrorMessage("Error fetching files.");
         }
       };
-
-      // Create file system watchers
-      const watcher = vscode.workspace.createFileSystemWatcher("**/*");
-      const gitignoreWatcher =
-        vscode.workspace.createFileSystemWatcher("**/.gitignore");
-
-      const handleFileSystemChange = () => {
-        getFilesAndSend();
-      };
-
-      watcher.onDidCreate(handleFileSystemChange);
-      watcher.onDidDelete(handleFileSystemChange);
-      watcher.onDidChange(handleFileSystemChange);
-      gitignoreWatcher.onDidCreate(handleFileSystemChange);
-      gitignoreWatcher.onDidDelete(handleFileSystemChange);
-      gitignoreWatcher.onDidChange(handleFileSystemChange);
-
-      panel.onDidDispose(() => {
-        watcher.dispose();
-        gitignoreWatcher.dispose();
-      });
 
       panel.webview.onDidReceiveMessage(
         async (message) => {
